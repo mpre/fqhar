@@ -8,7 +8,6 @@
 
 #include "kseq.h"
 
-#define 	FQHARGSTR 	256
 #define 	OUTWRITES	1024
 
 KSEQ_INIT(gzFile, gzread)
