@@ -15,14 +15,13 @@ KSEQ_INIT(gzFile, gzread)
 
 void printusage( )
 {
-  fprintf( stderr,  "usage: fqhar [-h] [-d] -l <seqlen>  -s <seedlen> -o <out.fq> <input.fq>	\n" );
+  fprintf( stderr,  "usage: fqhar [-h] [-d] -l <seqlen>  -s <seedlen> <input.fq>		\n" );
   fprintf( stderr,  "\n" );
   fprintf( stderr,  "arguments:                                                           	\n" );
   fprintf( stderr,  "	-h	show this help message and exit					\n" );
   fprintf( stderr,  "	-l	required sequence length					\n" );
   fprintf( stderr,  "	-s	minimum length of shared string between two reads		\n" );
   fprintf( stderr,  "	-d	die when find a sequence which length is smaller than		\n" );
-  fprintf( stderr,  "	-o	outputfile							\n" );
   fprintf( stderr,  "		SEQUENCELENGTH							\n" );
 }
 
@@ -36,14 +35,13 @@ int main( int argc, char ** argv )
   kseq_t 	*seq;
   char 		c;
   
-  while((c = getopt( argc, argv, "hdl:s:o:")) >= 0)
+  while((c = getopt( argc, argv, "hdl:s:")) >= 0)
     {
       switch(c)
 	{
 	case 'l': reqlen     = atoi(optarg); break;
 	case 's': reqseed    = atoi(optarg); break;
 	case 'd': dieonsmall = 1;	   ; break;
-	case 'o': ouf = gzopen(optarg, "w"); break;
 	case 'h': printusage(); return 1; break;
 	}
     }
@@ -53,6 +51,8 @@ int main( int argc, char ** argv )
       printusage();
       return 1;
     }
+
+  ouf = gzdopen( fileno(stdout), "wb");
   if(ouf == NULL){ perror("Can't open output file"); exit(1); }
 
   inf = strcmp(argv[optind], "-") ? gzopen(argv[optind], "r") : gzopen(fileno(stdin), "r");
@@ -87,9 +87,10 @@ int main( int argc, char ** argv )
 
 	  for( int sect=0; beg + reqlen <= seq->seq.l; ++sect )
 	    {
-	      // Write seqname and seqinfos
-	      outwrite[0] = '@';
 	      int i =1;
+	      int err;
+	      // Write seqname and seqinfos
+	      strncpy( outwrite, "@", 1);
 	      strncpy( outwrite +i, seq->name.s, seq->name.l);
 	      i += seq->name.l;
 	      strncpy( outwrite +i, seq->comment.s, seq->comment.l);
@@ -106,7 +107,7 @@ int main( int argc, char ** argv )
 	      strncpy( outwrite +i++, "\n", 1);
 	      strncpy( outwrite +i++, "\0", 1);
 	      outwrite[i] = '\0';
-	      gzwrite( ouf, outwrite, i );
+	      if( gzwrite( ouf, outwrite, (unsigned)i-1 ) != i-1 ) error(gzerror(ouf, &err));
 	      if(!lastseq)
 		{
 		  if(beg + reqlen +(reqlen - reqseed) < seq->seq.l)
