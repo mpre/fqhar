@@ -15,3 +15,5 @@ arguments:
 ```
 
 Input is stdin, output is stdout. If `-d` is set and a read with length smaller than <seqlen> is found the process will die, it `-d` is not set, the process will print an error to stderr.
+
+`kseq.h` by [Heng Li](https://github.com/lh3/readfq).
