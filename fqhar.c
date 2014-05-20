@@ -14,7 +14,7 @@ KSEQ_INIT(gzFile, gzread)
 
 void printusage( )
 {
-  fprintf( stderr,  "usage: fqhar [-h] [-d] -l <seqlen>  -s <seedlen>           \n" );
+  fprintf( stderr,  "usage: fqhar [-h] [-d] [-r] -l <seqlen>  -s <seedlen>      \n" );
   fprintf( stderr,  "\n" );
   fprintf( stderr,  "arguments:                                                 \n" );
   fprintf( stderr,  " -h  show this help message and exit                       \n" );
