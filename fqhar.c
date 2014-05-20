@@ -104,7 +104,7 @@ int main( int argc, char ** argv )
               i += seq->name.l;
               strncpy( outwrite +i, seq->comment.s, seq->comment.l);
               i += seq->comment.l;
-              i += snprintf( outwrite +i, OUTWRITES -i, " %d", sect);
+              i += snprintf( outwrite +i, OUTWRITES -i, "/%d", sect);
               strncpy( outwrite +i++, "\n", 1);
               strncpy( outwrite +i, seq->seq.s +beg, reqlen);
               i += reqlen;
