@@ -22,7 +22,52 @@ void printusage( )
   fprintf( stderr,  " -s  minimum length of shared string between two reads     \n" );
   fprintf( stderr,  " -d  die when find a sequence which length is smaller than \n" );
   fprintf( stderr,  "     SEQUENCELENGTH                                        \n" );
+  fprintf( stderr,  " -r  add reverse and complement reads                      \n" );
   fprintf( stderr,  " -v  (very) verbose output                                 \n" );
+}
+
+char complchar(char nucleotide)
+{
+  switch(nucleotide)
+    {
+    case 'a':
+    case 'A':
+      return 'T';
+      break;
+    case 'c':
+    case 'C':
+      return 'G';
+      break;
+    case 'g':
+    case 'G':
+      return 'C';
+      break;
+    case 't':
+    case 'T':
+      return 'A';
+      break;
+    case 'n':
+    case 'N':
+      return 'N';
+      break;
+    }
+  return 'N';
+}
+
+void rev_and_compl(char* source, char* dest, int len)
+{
+  dest[len] = '\0';
+  for(int i=len-1; i>=0; --i)
+    {
+      dest[i] = complchar(source[len-i-1]);
+    }
+}
+
+void rev(char* source, char* dest, int len)
+{
+  dest[len] = '\0';
+  for(int i=len-1; i>=0; --i)
+    dest[i] = source[len-i-1];
 }
 
 int main( int argc, char ** argv )
@@ -32,6 +77,7 @@ int main( int argc, char ** argv )
   int           reqlen     =0;
   unsigned int  reqseed    =0;
   int           verbose    =0;
+  int           revandcompl=0;
   short int     dieonsmall =0;
   kseq_t       *seq;
   char          c;
@@ -39,12 +85,13 @@ int main( int argc, char ** argv )
                 newc       =0, // Produced reads
                 oldc       =0; // Reads in original fastq
 
-  while((c = getopt( argc, argv, "hvdl:s:")) >= 0)
+  while((c = getopt( argc, argv, "hrvdl:s:")) >= 0)
     {
       switch(c)
         {
         case 'l': reqlen     = atoi(optarg); break;
         case 's': reqseed    = atoi(optarg); break;
+        case 'r': revandcompl= 1           ; break;
         case 'v': verbose    = 1           ; break;
         case 'd': dieonsmall = 1;          ; break;
         case 'h': printusage()  ; return 1 ; break;
@@ -60,7 +107,7 @@ int main( int argc, char ** argv )
   ouf = gzdopen( fileno(stdout), "wb");
   if(ouf == NULL){ perror("Can't open output file"); exit(1); }
 
-  inf = strcmp(argv[optind], "-") ? gzopen(argv[optind], "r") : gzopen(fileno(stdin), "r");
+  inf = strcmp(argv[optind], "-") ? gzopen(argv[optind], "r") : gzdopen(fileno(stdin), "r");
   if(inf == NULL){ perror("Can't open file"); exit(1); }
 
   fprintf( stderr,  "Running fqhar with the following parameters \n");
@@ -117,6 +164,36 @@ int main( int argc, char ** argv )
               strncpy( outwrite +i++, "\0", 1);
               outwrite[i] = '\0';
               if( gzwrite( ouf, outwrite, (unsigned)i-1 ) != i-1 ) error(gzerror(ouf, &err));
+              if(revandcompl)
+                {
+                  int i=0;
+                  int err;
+                  char* seqrc = malloc(seq->seq.l);
+                  char* qualrc = malloc(seq->qual.l);
+                  rev_and_compl(seq->seq.s, seqrc, seq->seq.l);
+                  rev(seq->qual.s, qualrc, seq->qual.l);
+                  fprintf(stderr, "COMPLEMENT IS : %s\n", seqrc);
+                  strncpy( outwrite, "@", 1);
+                  strncpy( outwrite +i, seq->name.s, seq->name.l);
+                  i += seq->name.l;
+                  strncpy( outwrite +i, seq->comment.s, seq->comment.l);
+                  i += seq->comment.l;
+                  i += snprintf( outwrite +i, OUTWRITES -i, "/%d/rc", sect);
+                  strncpy( outwrite +i++, "\n", 1);
+                  strncpy( outwrite +i, seqrc +(seq->seq.l - (beg+reqlen)),seq->seq.l - beg);
+                  i += reqlen;
+                  strncpy( outwrite +i++, "\n", 1);
+                  strncpy( outwrite +i++, "+", 1);
+                  strncpy( outwrite +i++, "\n", 1);
+                  strncpy( outwrite +i, qualrc +(seq->qual.l - (beg+reqlen)), seq->qual.l- beg);
+                  i += reqlen;
+                  strncpy( outwrite +i++, "\n", 1);
+                  strncpy( outwrite +i++, "\0", 1);
+                  outwrite[i] = '\0';
+                  if( gzwrite( ouf, outwrite, (unsigned)i-1 ) != i-1 ) error(gzerror(ouf, &err));
+                  free(seqrc);
+                  free(qualrc);
+                }
               if(!lastseq)
                 {
                   if(beg + reqlen +(reqlen - reqseed) < seq->seq.l)
