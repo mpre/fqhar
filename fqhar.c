@@ -151,7 +151,7 @@ int main( int argc, char ** argv )
               i += seq->name.l;
               strncpy( outwrite +i, seq->comment.s, seq->comment.l);
               i += seq->comment.l;
-              i += snprintf( outwrite +i, OUTWRITES -i, "/%d", sect);
+              i += snprintf( outwrite +i, OUTWRITES -i, "_%d", sect);
               strncpy( outwrite +i++, "\n", 1);
               strncpy( outwrite +i, seq->seq.s +beg, reqlen);
               i += reqlen;
@@ -172,13 +172,12 @@ int main( int argc, char ** argv )
                   char* qualrc = malloc(seq->qual.l);
                   rev_and_compl(seq->seq.s, seqrc, seq->seq.l);
                   rev(seq->qual.s, qualrc, seq->qual.l);
-                  fprintf(stderr, "COMPLEMENT IS : %s\n", seqrc);
                   strncpy( outwrite, "@", 1);
                   strncpy( outwrite +i, seq->name.s, seq->name.l);
                   i += seq->name.l;
                   strncpy( outwrite +i, seq->comment.s, seq->comment.l);
                   i += seq->comment.l;
-                  i += snprintf( outwrite +i, OUTWRITES -i, "/%d/rc", sect);
+                  i += snprintf( outwrite +i, OUTWRITES -i, "_%d_rc", sect);
                   strncpy( outwrite +i++, "\n", 1);
                   strncpy( outwrite +i, seqrc +(seq->seq.l - (beg+reqlen)),seq->seq.l - beg);
                   i += reqlen;
