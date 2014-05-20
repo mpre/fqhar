@@ -1,5 +1,4 @@
 # FASTQ sequences' length harmonizer
-======
 
 Harmonize lengths between sequences in a FASTQ (zipped) file.
 
@@ -13,7 +12,7 @@ arguments:
  -d  die when find a sequence which length is smaller than 
      SEQUENCELENGTH                                        
  -r  add reverse and complement reads                      
- -v  (very) verbose output                                 
+ -v  (very) verbose output 
 ```
 
 Input is stdin, output is stdout. If `-d` is set and a read with length smaller than <seqlen> is found the process will die, it `-d` is not set, the process will print an error to stderr.
