@@ -166,7 +166,8 @@ int main( int argc, char ** argv )
               if( gzwrite( ouf, outwrite, (unsigned)i-1 ) != i-1 ) error(gzerror(ouf, &err));
               if(revandcompl)
                 {
-                  int i=0;
+                  ++newc;
+                  int i=1;
                   int err;
                   char* seqrc = malloc(seq->seq.l);
                   char* qualrc = malloc(seq->qual.l);
